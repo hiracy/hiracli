@@ -143,26 +143,24 @@ _hiracli_completion() {
     COMPREPLY=()
     cur="${COMP_WORDS[COMP_CWORD]}"
     prev="${COMP_WORDS[COMP_CWORD-1]}"
-    opts="llm help"
+    opts="llm git help"
 
     case "${prev}" in
         "llm")
             COMPREPLY=( $(compgen -W "list ask help" -- ${cur}) )
             return 0
             ;;
-        "ask")
-            if [ "${COMP_WORDS[1]}" = "llm" ]; then
-                COMPREPLY=( $(compgen -W "--llm --debug -d" -- ${cur}) )
-            fi
+        "git")
+            COMPREPLY=( $(compgen -W "diff-comment help" -- ${cur}) )
             return 0
             ;;
         *)
             if [[ ${cur} == -* ]]; then
                 case "${COMP_WORDS[1]}" in
-                    "llm")
+                    "git")
                         case "${COMP_WORDS[2]}" in
-                            "ask")
-                                COMPREPLY=( $(compgen -W "--llm --debug -d" -- ${cur}) )
+                            "diff-comment")
+                                COMPREPLY=( $(compgen -W "--llm" -- ${cur}) )
                                 ;;
                         esac
                         ;;
@@ -186,6 +184,7 @@ _hiracli() {
     local -a commands subcmds
     commands=(
         'llm:LLM関連のコマンド'
+        'git:Git関連のコマンド'
         'help:ヘルプの表示'
     )
 
@@ -199,6 +198,19 @@ _hiracli() {
             ;;
         args)
             case $words[1] in
+                git)
+                    subcmds=(
+                        'diff-comment:Git差分からコミットメッセージを生成'
+                        'help:Gitコマンドのヘルプ'
+                    )
+                    _describe 'git commands' subcmds
+                    case $words[2] in
+                        diff-comment)
+                            _arguments \
+                                '--llm[LLMモデルを指定]:model:(anthropic.claude-3-5-sonnet-20240620-v1:0 amazon.titan-text-express-v1)'
+                            ;;
+                    esac
+                    ;;
                 llm)
                     subcmds=(
                         'list:利用可能なLLMモデルの一覧表示'
@@ -270,23 +282,9 @@ EOF
     echo "  -i|--init         Initialize the Go module"
     echo "  -b|--build        Build the Go project"
     echo "  -f|--fmt          Format the Go source code"
-    echo "  -c|--copy-git-diff Copy git diff to clipboard"
     echo "  -t|--test         Run tests for hiracli"
     echo "  -a|--apply-completion Install shell completion for hiracli"
     echo "  -h|--help         Display this help message"
-    ;;
-  "-c"|"--copy-git-diff")
-    if command -v xclip >/dev/null 2>&1; then
-      git --no-pager diff | xclip -selection clipboard
-    elif command -v pbcopy >/dev/null 2>&1; then
-      git --no-pager diff | pbcopy
-    else
-      echo "Error: Requires xclip (Linux) or pbcopy (macOS)"
-      echo "For Debian/Ubuntu systems, install with:"
-      echo "  sudo apt update && sudo apt install -y xclip"
-      exit 1
-    fi
-    echo "Git diff copied to clipboard"
     ;;
   "")
     mkdir -p ${BIN_DIR}
