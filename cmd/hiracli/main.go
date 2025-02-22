@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"os"
 
-	"hiracli/llm/ai"
+	"hiracli/llm"
+	gitllm "hiracli/llm/git"
 
 	"github.com/joho/godotenv"
 )
@@ -24,8 +25,40 @@ func main() {
 	switch os.Args[1] {
 	case "llm":
 		handleLLMCommand(os.Args[2:])
+	case "git":
+		handleGitCommand(os.Args[2:])
 	default:
 		printHelp()
+		os.Exit(1)
+	}
+}
+
+func handleGitCommand(args []string) {
+	if len(args) < 1 {
+		printGitHelp()
+		os.Exit(1)
+	}
+
+	switch args[0] {
+	case "diff-comment":
+		gitDiffCmd := flag.NewFlagSet("git diff-comment", flag.ExitOnError)
+		llmModel := gitDiffCmd.String("llm", "anthropic.claude-3-5-sonnet-20240620-v1:0", "LLMのモデルを指定")
+
+		if err := gitDiffCmd.Parse(args[1:]); err != nil {
+			fmt.Printf("引数のパースエラー: %v\n", err)
+			os.Exit(1)
+		}
+
+		opts := gitllm.GitDiffOptions{
+			LLMModel: *llmModel,
+		}
+
+		if err := gitllm.GitDiffComment(opts); err != nil {
+			fmt.Printf("エラー: %v\n", err)
+			os.Exit(1)
+		}
+	default:
+		printGitHelp()
 		os.Exit(1)
 	}
 }
@@ -38,13 +71,13 @@ func handleLLMCommand(args []string) {
 
 	switch args[0] {
 	case "list":
-		if err := ai.ListModels(); err != nil {
+		if err := llm.ListModels(); err != nil {
 			fmt.Printf("エラー: %v\n", err)
 			os.Exit(1)
 		}
 	case "ask":
 		llmAskCmd := flag.NewFlagSet("llm ask", flag.ExitOnError)
-		llm := llmAskCmd.String("llm", "anthropic.claude-3-5-sonnet-20240620-v1:0", "LLMのモデルを指定")
+		llmModel := llmAskCmd.String("llm", "anthropic.claude-3-5-sonnet-20240620-v1:0", "LLMのモデルを指定")
 		debug := llmAskCmd.Bool("debug", false, "デバッグモードを有効にする")
 		llmAskCmd.BoolVar(debug, "d", false, "デバッグモードを有効にする (shorthand)")
 
@@ -53,12 +86,12 @@ func handleLLMCommand(args []string) {
 			os.Exit(1)
 		}
 
-		opts := ai.AskOptions{
-			LLMModel:  *llm,
+		opts := llm.AskOptions{
+			LLMModel:  *llmModel,
 			DebugMode: *debug,
 		}
 
-		if err := ai.Ask(opts); err != nil {
+		if err := llm.Ask(opts); err != nil {
 			fmt.Printf("エラー: %v\n", err)
 			os.Exit(1)
 		}
@@ -72,6 +105,7 @@ func printHelp() {
 	fmt.Println("使用方法: hiracli <command> [options]")
 	fmt.Println("\nコマンド:")
 	fmt.Println("  llm    LLM関連のコマンド")
+	fmt.Println("  git    Git関連のコマンド")
 	fmt.Println("\n詳細なヘルプは各コマンドに -h または --help オプションを付けて実行してください")
 }
 
@@ -80,5 +114,12 @@ func printLLMHelp() {
 	fmt.Println("\nサブコマンド:")
 	fmt.Println("  list   利用可能なLLMモデルを表示")
 	fmt.Println("  ask    LLMに質問する")
+	fmt.Println("\n詳細なヘルプは各サブコマンドに -h または --help オプションを付けて実行してください")
+}
+
+func printGitHelp() {
+	fmt.Println("使用方法: hiracli git <subcommand> [options]")
+	fmt.Println("\nサブコマンド:")
+	fmt.Println("  diff-comment   Git差分からコミットメッセージを生成")
 	fmt.Println("\n詳細なヘルプは各サブコマンドに -h または --help オプションを付けて実行してください")
 }
