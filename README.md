@@ -4,6 +4,26 @@ Hiracy Swiss Army Command Line Tool
 
 ## インストール
 
+### GitHub Releasesからインストール
+
+以下のコマンドで最新バージョンをダウンロードしてインストールできます：
+
+```bash
+# Linux (amd64)
+curl -L https://github.com/hiracy/hiracli/releases/latest/download/hiracli_linux_amd64.tar.gz | tar xz -C /usr/local/bin
+
+# Linux (arm64)
+curl -L https://github.com/hiracy/hiracli/releases/latest/download/hiracli_linux_arm64.tar.gz | tar xz -C /usr/local/bin
+
+# macOS (amd64)
+curl -L https://github.com/hiracy/hiracli/releases/latest/download/hiracli_darwin_amd64.tar.gz | tar xz -C /usr/local/bin
+
+# macOS (arm64)
+curl -L https://github.com/hiracy/hiracli/releases/latest/download/hiracli_darwin_arm64.tar.gz | tar xz -C /usr/local/bin
+```
+
+### ソースからビルド
+
 ```bash
 go install
 ```
