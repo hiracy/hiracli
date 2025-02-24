@@ -43,6 +43,7 @@ func handleGitCommand(args []string) {
 	case "diff-comment":
 		gitDiffCmd := flag.NewFlagSet("git diff-comment", flag.ExitOnError)
 		llmModel := gitDiffCmd.String("llm", "anthropic.claude-3-5-sonnet-20240620-v1:0", "LLMのモデルを指定")
+		cached := gitDiffCmd.Bool("cached", false, "ステージングされた変更の差分を使用")
 
 		if err := gitDiffCmd.Parse(args[1:]); err != nil {
 			fmt.Printf("引数のパースエラー: %v\n", err)
@@ -51,6 +52,7 @@ func handleGitCommand(args []string) {
 
 		opts := gitllm.GitDiffOptions{
 			LLMModel: *llmModel,
+			Cached:   *cached,
 		}
 
 		if err := gitllm.GitDiffComment(opts); err != nil {

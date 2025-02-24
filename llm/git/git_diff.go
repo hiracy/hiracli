@@ -10,10 +10,15 @@ import (
 
 type GitDiffOptions struct {
 	LLMModel string
+	Cached   bool
 }
 
-func GetGitDiff() (string, error) {
-	cmd := exec.Command("git", "diff")
+func GetGitDiff(cached bool) (string, error) {
+	args := []string{"diff"}
+	if cached {
+		args = append(args, "--cached")
+	}
+	cmd := exec.Command("git", args...)
 	var out bytes.Buffer
 	cmd.Stdout = &out
 	err := cmd.Run()
@@ -24,18 +29,25 @@ func GetGitDiff() (string, error) {
 }
 
 func GitDiffComment(opts GitDiffOptions) error {
-	diff, err := GetGitDiff()
+	diff, err := GetGitDiff(opts.Cached)
 	if err != nil {
 		return err
 	}
 
 	if diff == "" {
+		if opts.Cached {
+			return fmt.Errorf("git diff --cachedの結果が空です。ステージングされた変更がありません")
+		}
 		return fmt.Errorf("git diffの結果が空です。変更がありません")
 	}
 
-	prompt := fmt.Sprintf(`# git diff
+	var diffType string
+	if opts.Cached {
+		diffType = " --cached"
+	}
+	prompt := fmt.Sprintf(`# git diff%s
 %s
-日本語のコミットメッセージを作って`, diff)
+日本語のコミットメッセージを作って`, diffType, diff)
 
 	askOpts := llm.AskOptions{
 		LLMModel:  opts.LLMModel,
