@@ -46,28 +46,6 @@ generate_changelog() {
 # スクリプト終了時に一時ディレクトリを削除する設定
 trap "rm -rf ${TEMP_DIR}" EXIT
 
-# コマンドライン引数の処理
-while [ $# -gt 0 ]; do
-    case "$1" in
-        -b|--bump-up-version)
-            shift
-            VERSION_TYPE=${1:-patch}
-            NEW_VERSION=$(bump_version "$VERSION_TYPE")
-            CHANGELOG=$(generate_changelog)
-            
-            echo "Current version: $(get_current_version)"
-            echo "New version: $NEW_VERSION"
-            echo "\nChangelog:\n$CHANGELOG"
-            
-            # タグを作成してプッシュ
-            git tag -a "$NEW_VERSION" -m "Release $NEW_VERSION\n\n$CHANGELOG"
-            git push origin "$NEW_VERSION"
-            exit 0
-            ;;
-    esac
-    shift
-done
-
 # OSとアーキテクチャの検出を改善
 OS=$(uname -s)
 ARCH=$(uname -m)
@@ -336,6 +314,7 @@ EOF
     echo "Options:"
     echo "  -g|--go-setup     Reinstall Golang if the version is different"
     echo "  -i|--init         Initialize the Go module"
+    echo "  -u|--bump-up-version Bump up version and create a new release tag"
     echo "  -b|--build        Build the Go project"
     echo "  -f|--fmt          Format the Go source code"
     echo "  -t|--test         Run tests for hiracli"
@@ -346,6 +325,20 @@ EOF
     mkdir -p ${BIN_DIR}
     GOOS=${GOOS} GOARCH=${GOARCH} go build -o ${BIN_DIR}/hiracli ./cmd/hiracli
     chmod +x ${BIN_DIR}/hiracli
+    ;;
+  "-u"|"--bump-up-version")
+    shift
+    VERSION_TYPE=${1:-patch}
+    NEW_VERSION=$(bump_version "$VERSION_TYPE")
+    CHANGELOG=$(generate_changelog)
+    
+    echo "Current version: $(get_current_version)"
+    echo "New version: $NEW_VERSION"
+    echo "\nChangelog:\n$CHANGELOG"
+    
+    # タグを作成してプッシュ
+    git tag -a "$NEW_VERSION" -m "Release $NEW_VERSION\n\n$CHANGELOG"
+    git push origin "$NEW_VERSION"
     ;;
   "-b"|"--build")
     mkdir -p ${BIN_DIR}
