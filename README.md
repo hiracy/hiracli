@@ -38,7 +38,7 @@ cp .env.example .env
 
 2. 環境変数を設定：
 
-- `A WS_ACCESS_KEY_ID`: AWSアクセスキーID
+- `AWS_ACCESS_KEY_ID`: AWSアクセスキーID
 - `AWS_SECRET_ACCESS_KEY`: AWSシークレットアクセスキー
 - `AWS_REGION`: AWSリージョン（デフォルト: ap-northeast-1）
 
@@ -57,6 +57,8 @@ cp .env.example .env
 
 ## 使用方法
 
+### LLM関連
+
 AIに質問する：
 
 ```bash
@@ -71,6 +73,15 @@ hiracli llm ask --debug
 hiracli llm list
 ```
 
+### Git関連
+
+Git差分からコミットメッセージを生成：
+
+```bash
+hiracli git diff-comment
+hiracli git diff-comment --llm amazon.titan-text-express-v1
+```
+
 ## 利用可能なコマンド
 
 ### LLM関連
@@ -81,13 +92,19 @@ hiracli llm list
     - `--llm`: LLMモデルを指定（デフォルト: anthropic.claude-3-5-sonnet-20240620-v1:0）
     - `--debug, -d`: デバッグモードを有効にする
 
+### Git関連
+
+- `git diff-comment`: Git差分からコミットメッセージを生成
+  - オプション：
+    - `--llm`: LLMモデルを指定（デフォルト: anthropic.claude-3-5-sonnet-20240620-v1:0）
+
 ## セットアップスクリプトのオプション
 
 - `-g, --go-setup`: Goのバージョンが異なる場合に再インストール
 - `-i, --init`: Goモジュールの初期化
+- `-u, --bump-up-version`: バージョンアップとリリースタグの作成
 - `-b, --build`: プロジェクトのビルド
 - `-f, --fmt`: Goソースコードのフォーマット
-- `-c, --copy-git-diff`: gitの差分をクリップボードにコピー
 - `-t, --test`: hiraclのテストを実行
 - `-a, --apply-completion`: シェル補完のインストール
 - `-h, --help`: ヘルプメッセージの表示
