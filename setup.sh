@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 #set -xv
 set -e
 
@@ -9,8 +9,64 @@ SRC_DIR=${PROJECT_ROOT}/src
 GO_VERSION=${GO_VERSION:-1.23.6}
 TEMP_DIR=$(mktemp -d)
 
+# バージョン管理関連の関数
+get_current_version() {
+    git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0"
+}
+
+bump_version() {
+    current_version=$(get_current_version | sed 's/^v//')
+    major=$(echo "$current_version" | cut -d. -f1)
+    minor=$(echo "$current_version" | cut -d. -f2)
+    patch=$(echo "$current_version" | cut -d. -f3)
+    
+    case "$1" in
+        major)
+            major=$((major + 1))
+            minor=0
+            patch=0
+            ;;
+        minor)
+            minor=$((minor + 1))
+            patch=0
+            ;;
+        patch|*)
+            patch=$((patch + 1))
+            ;;
+    esac
+    
+    echo "v$major.$minor.$patch"
+}
+
+generate_changelog() {
+    last_tag=$(git describe --tags --abbrev=0 2>/dev/null || git rev-list --max-parents=0 HEAD)
+    git log --pretty=format:"%s" "$last_tag..HEAD" | grep -v '^Merge' || true
+}
+
 # スクリプト終了時に一時ディレクトリを削除する設定
 trap "rm -rf ${TEMP_DIR}" EXIT
+
+# コマンドライン引数の処理
+while [ $# -gt 0 ]; do
+    case "$1" in
+        -b|--bump-up-version)
+            shift
+            VERSION_TYPE=${1:-patch}
+            NEW_VERSION=$(bump_version "$VERSION_TYPE")
+            CHANGELOG=$(generate_changelog)
+            
+            echo "Current version: $(get_current_version)"
+            echo "New version: $NEW_VERSION"
+            echo "\nChangelog:\n$CHANGELOG"
+            
+            # タグを作成してプッシュ
+            git tag -a "$NEW_VERSION" -m "Release $NEW_VERSION\n\n$CHANGELOG"
+            git push origin "$NEW_VERSION"
+            exit 0
+            ;;
+    esac
+    shift
+done
 
 # OSとアーキテクチャの検出を改善
 OS=$(uname -s)
