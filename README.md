@@ -73,6 +73,22 @@ hiracli llm ask --debug
 hiracli llm list
 ```
 
+指定したパターンに一致するファイルを表示：
+
+```bash
+# 拡張子で指定
+hiracli llm flatten-src --extension "*.go"
+
+# パターンで指定
+hiracli llm flatten-src --pattern "main"
+
+# 特定のディレクトリのみ検索
+hiracli llm flatten-src --extension "*.go" --path "./cmd"
+
+# デバッグ情報を表示
+hiracli llm flatten-src --extension "*.go" --debug
+```
+
 ### Git関連
 
 Git差分からコミットメッセージを生成：
@@ -90,6 +106,14 @@ hiracli git diff-comment --llm amazon.titan-text-express-v1
 - `llm ask`: LLMに質問する
   - オプション：
     - `--llm`: LLMモデルを指定（デフォルト: anthropic.claude-3-5-sonnet-20240620-v1:0）
+    - `--debug, -d`: デバッグモードを有効にする
+- `llm flatten-src`: 指定したパターンに一致するファイルを表示
+  - オプション：
+    - `--pattern`: ファイルを検索する正規表現パターン
+    - `--extension`: ファイル拡張子でフィルタリング（例: *.go）
+    - `--path, -p`: 検索を開始するディレクトリパス（デフォルト: カレントディレクトリ）
+    - `--depth-limit`: ディレクトリ探索の深さ制限（デフォルト: 10）
+    - `--max-input-tokens`: 最大トークン数（デフォルト: 200000）
     - `--debug, -d`: デバッグモードを有効にする
 
 ### Git関連

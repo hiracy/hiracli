@@ -97,6 +97,52 @@ func handleLLMCommand(args []string) {
 			fmt.Printf("エラー: %v\n", err)
 			os.Exit(1)
 		}
+	case "flatten-src":
+		flattenCmd := flag.NewFlagSet("llm flatten-src", flag.ExitOnError)
+		pattern := flattenCmd.String("pattern", "", "ファイルを検索する正規表現パターン")
+		extension := flattenCmd.String("extension", "", "ファイル拡張子でフィルタリング（例: *.go）")
+		maxTokens := flattenCmd.Int("max-input-tokens", 200000, "最大トークン数（デフォルト: 200000）")
+		depthLimit := flattenCmd.Int("depth-limit", 10, "ディレクトリ探索の深さ制限（デフォルト: 10）")
+		debug := flattenCmd.Bool("debug", false, "デバッグモードを有効にする")
+		flattenCmd.BoolVar(debug, "d", false, "デバッグモードを有効にする (shorthand)")
+		path := flattenCmd.String("path", "", "検索を開始するディレクトリパス（デフォルト: カレントディレクトリ）")
+		flattenCmd.StringVar(path, "p", "", "検索を開始するディレクトリパス（デフォルト: カレントディレクトリ）")
+
+		if err := flattenCmd.Parse(args[1:]); err != nil {
+			fmt.Printf("引数のパースエラー: %v\n", err)
+			os.Exit(1)
+		}
+
+		if *pattern == "" && *extension == "" {
+			fmt.Println("エラー: --pattern または --extension のいずれかは必須です")
+			flattenCmd.PrintDefaults()
+			os.Exit(1)
+		}
+
+		// パスが指定されていない場合はカレントディレクトリを使用
+		basePath := *path
+		if basePath == "" {
+			var err error
+			basePath, err = os.Getwd()
+			if err != nil {
+				fmt.Printf("エラー: カレントディレクトリの取得に失敗しました: %v\n", err)
+				os.Exit(1)
+			}
+		}
+
+		opts := llm.FlattenOptions{
+			Pattern:        *pattern,
+			Extension:      *extension,
+			MaxInputTokens: *maxTokens,
+			DepthLimit:     *depthLimit,
+			DebugMode:      *debug,
+			BasePath:       basePath,
+		}
+
+		if err := llm.FlattenSrc(opts); err != nil {
+			fmt.Printf("エラー: %v\n", err)
+			os.Exit(1)
+		}
 	default:
 		printLLMHelp()
 		os.Exit(1)
@@ -114,8 +160,11 @@ func printHelp() {
 func printLLMHelp() {
 	fmt.Println("使用方法: hiracli llm <subcommand> [options]")
 	fmt.Println("\nサブコマンド:")
-	fmt.Println("  list   利用可能なLLMモデルを表示")
-	fmt.Println("  ask    LLMに質問する")
+	fmt.Println("  list         利用可能なLLMモデルを表示")
+	fmt.Println("  ask          LLMに質問する")
+	fmt.Println("  flatten-src  ファイルをLLMチャットに適した形式で表示")
+	fmt.Println("               [--pattern pattern] [--extension *.ext] [--path|-p dir]")
+	fmt.Println("               [--depth-limit n] [--max-input-tokens n] [--debug|-d]")
 	fmt.Println("\n詳細なヘルプは各サブコマンドに -h または --help オプションを付けて実行してください")
 }
 
