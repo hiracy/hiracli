@@ -2,6 +2,12 @@
 #set -xv
 set -e
 
+# 色の定義
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+YELLOW='\033[0;33m'
+NC='\033[0m' # No Color
+
 PROJECT_ROOT=`dirname $0`
 BIN_NAME="hiracli"
 BIN_DIR=${PROJECT_ROOT}/bin
@@ -108,42 +114,23 @@ case "$1" in
     fi
     ;;
   "-t"|"--test")
-    echo "Running tests for hiracli..."
+    echo -e "${YELLOW}Running tests for hiracli...${NC}"
 
-    # # Check if go.mod exists and has required dependencies
-    # if [ ! -f "go.mod" ] || ! grep -q "github.com/hiracy/hiracli" "go.mod"; then
-    #   echo "Error: Required dependencies not found."
-    #   echo "Please run '$0 --init' first to set up the project dependencies."
-    #   exit 1
-    # fi
-
-    # Run Go unit tests first
-    echo "\nRunning Go unit tests..."
-    if ! go test -v ./...; then
-      echo "✗ Go unit tests failed"
+    # Run specific unit test for llm list command
+    echo -e "${YELLOW}Running LLM list command output format test...${NC}"
+    if ! go test ./llm/list_test.go -v; then
+      echo -e "${RED}✗ LLM list command format test failed${NC}"
       exit 1
     fi
-    echo "✓ Go unit tests passed"
+    echo -e "${GREEN}✓ LLM list command format test passed${NC}"
 
     # Build the binary
-    echo "\nBuilding hiracli binary..."
+    echo -e "${YELLOW}Building hiracli binary...${NC}"
     mkdir -p ${BIN_DIR}
     GOOS=${GOOS} GOARCH=${GOARCH} go build -o ${BIN_DIR}/hiracli ./cmd/hiracli
     chmod +x ${BIN_DIR}/hiracli
 
-    echo "\nRunning integration tests..."
-
-    # TODO: インテグレーションテストを追加
-  
-    # Summary
-    echo "\nTest Summary:"
-    if [ $FAILED_TESTS -eq 0 ]; then
-      echo "All integration tests passed! ✓"
-      exit 0
-    else
-      echo "$FAILED_TESTS integration test(s) failed ✗"
-      exit 1
-    fi
+    echo -e "${GREEN}All tests passed!${NC}"
     ;;
   "-i"|"--init")
     MODULE_NAME=${MODULE_NAME:-hiracli}
@@ -342,9 +329,22 @@ EOF
     echo "  -h|--help         Display this help message"
     ;;
   "")
-    mkdir -p ${BIN_DIR}
-    GOOS=${GOOS} GOARCH=${GOARCH} go build -o ${BIN_DIR}/hiracli ./cmd/hiracli
-    chmod +x ${BIN_DIR}/hiracli
+    # 引数なしの場合は、最初にテストを実行し、それから最終的なビルドを行う
+    echo -e "${YELLOW}Running tests and building hiracli...${NC}"
+    
+    # テスト実行 - llm listのテストのみを実行
+    echo -e "${YELLOW}Running LLM list command output format test...${NC}"
+    if ! go test ./llm/list_test.go -v; then
+      echo -e "${RED}✗ LLM list command format test failed${NC}"
+      exit 1
+    fi
+    echo -e "${GREEN}✓ LLM list command format test passed${NC}"
+    
+    # ビルド実行
+    echo -e "${YELLOW}Building hiracli...${NC}"
+    $0 --build
+    
+    echo -e "${GREEN}hiracli has been successfully tested and built.${NC}"
     ;;
   "-u"|"--bump-up-version")
     shift

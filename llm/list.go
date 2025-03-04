@@ -4,9 +4,20 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/bedrock"
 )
+
+// BedrockClientAPI はBedrock APIのインターフェースです（テスト用にモック可能）
+type BedrockClientAPI interface {
+	ListFoundationModels(ctx context.Context, params *bedrock.ListFoundationModelsInput, optFns ...func(*bedrock.Options)) (*bedrock.ListFoundationModelsOutput, error)
+}
+
+// デフォルトのBedrockクライアント生成関数
+var newBedrockClient = func(cfg interface{}) BedrockClientAPI {
+	return bedrock.NewFromConfig(cfg.(aws.Config))
+}
 
 // ListModels は、利用可能なLLMモデルの一覧を表示する関数です
 func ListModels() error {
@@ -17,7 +28,7 @@ func ListModels() error {
 	}
 
 	// Bedrockクライアントの作成
-	bedrockClient := bedrock.NewFromConfig(cfg)
+	bedrockClient := newBedrockClient(cfg)
 
 	// 利用可能なモデルの取得
 	output, err := bedrockClient.ListFoundationModels(context.TODO(), &bedrock.ListFoundationModelsInput{})
