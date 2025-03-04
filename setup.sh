@@ -181,7 +181,7 @@ _hiracli_completion() {
 
     case "${prev}" in
         "llm")
-            COMPREPLY=( $(compgen -W "list ask help" -- ${cur}) )
+            COMPREPLY=( $(compgen -W "list ask flatten-src help" -- ${cur}) )
             return 0
             ;;
         "git")
@@ -195,6 +195,16 @@ _hiracli_completion() {
                         case "${COMP_WORDS[2]}" in
                             "diff-comment")
                                 COMPREPLY=( $(compgen -W "--llm" -- ${cur}) )
+                                ;;
+                        esac
+                        ;;
+                    "llm")
+                        case "${COMP_WORDS[2]}" in
+                            "ask")
+                                COMPREPLY=( $(compgen -W "--llm --debug -d" -- ${cur}) )
+                                ;;
+                            "flatten-src")
+                                COMPREPLY=( $(compgen -W "--pattern --extension --path -p --depth-limit --max-input-tokens --debug -d" -- ${cur}) )
                                 ;;
                         esac
                         ;;
@@ -249,6 +259,7 @@ _hiracli() {
                     subcmds=(
                         'list:利用可能なLLMモデルの一覧表示'
                         'ask:LLMに質問する'
+                        'flatten-src:ファイルをLLMチャットに適した形式で表示'
                         'help:LLMコマンドのヘルプ'
                     )
                     _describe 'llm commands' subcmds
@@ -256,6 +267,15 @@ _hiracli() {
                         ask)
                             _arguments \
                                 '--llm[LLMモデルを指定]:model:(anthropic.claude-3-5-sonnet-20240620-v1:0 amazon.titan-text-express-v1)' \
+                                '(-d --debug)'{-d,--debug}'[デバッグモードを有効にする]'
+                            ;;
+                        flatten-src)
+                            _arguments \
+                                '--pattern[ファイルを検索する正規表現パターン]:pattern:' \
+                                '--extension[ファイル拡張子でフィルタリング]:extension:' \
+                                '(-p --path)'{-p,--path}'[検索を開始するディレクトリパス]:directory:_files -/' \
+                                '--depth-limit[ディレクトリ探索の深さ制限]:depth:(5 10 15 20)' \
+                                '--max-input-tokens[最大トークン数]:tokens:(50000 100000 200000 300000)' \
                                 '(-d --debug)'{-d,--debug}'[デバッグモードを有効にする]'
                             ;;
                     esac
