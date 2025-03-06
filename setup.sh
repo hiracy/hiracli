@@ -116,19 +116,20 @@ case "$1" in
   "-t"|"--test")
     echo -e "${YELLOW}Running tests for hiracli...${NC}"
 
-    # Run specific unit test for llm list command
-    echo -e "${YELLOW}Running LLM list command output format test...${NC}"
-    if ! go test ./llm/list_test.go -v; then
-      echo -e "${RED}✗ LLM list command format test failed${NC}"
-      exit 1
-    fi
-    echo -e "${GREEN}✓ LLM list command format test passed${NC}"
-
-    # Build the binary
+    # Build the binary first
     echo -e "${YELLOW}Building hiracli binary...${NC}"
     mkdir -p ${BIN_DIR}
     GOOS=${GOOS} GOARCH=${GOARCH} go build -o ${BIN_DIR}/hiracli ./cmd/hiracli
     chmod +x ${BIN_DIR}/hiracli
+    echo -e "${GREEN}✓ Binary build successful${NC}"
+
+    # Run unit tests for llm commands
+    echo -e "${YELLOW}Running LLM command tests...${NC}"
+    if ! go test ./llm -v; then
+      echo -e "${RED}✗ LLM command tests failed${NC}"
+      exit 1
+    fi
+    echo -e "${GREEN}✓ LLM command tests passed${NC}"
 
     echo -e "${GREEN}All tests passed!${NC}"
     ;;
@@ -332,17 +333,20 @@ EOF
     # 引数なしの場合は、最初にテストを実行し、それから最終的なビルドを行う
     echo -e "${YELLOW}Running tests and building hiracli...${NC}"
     
-    # テスト実行 - llm listのテストのみを実行
-    echo -e "${YELLOW}Running LLM list command output format test...${NC}"
-    if ! go test ./llm/list_test.go -v; then
-      echo -e "${RED}✗ LLM list command format test failed${NC}"
+    # ビルド実行
+    echo -e "${YELLOW}Building hiracli binary...${NC}"
+    mkdir -p ${BIN_DIR}
+    GOOS=${GOOS} GOARCH=${GOARCH} go build -o ${BIN_DIR}/hiracli ./cmd/hiracli
+    chmod +x ${BIN_DIR}/hiracli
+    echo -e "${GREEN}✓ Binary build successful${NC}"
+
+    # テスト実行 - llmパッケージ全体をテスト
+    echo -e "${YELLOW}Running LLM command tests...${NC}"
+    if ! go test ./llm -v; then
+      echo -e "${RED}✗ LLM command tests failed${NC}"
       exit 1
     fi
-    echo -e "${GREEN}✓ LLM list command format test passed${NC}"
-    
-    # ビルド実行
-    echo -e "${YELLOW}Building hiracli...${NC}"
-    $0 --build
+    echo -e "${GREEN}✓ LLM command tests passed${NC}"
     
     echo -e "${GREEN}hiracli has been successfully tested and built.${NC}"
     ;;
