@@ -1,6 +1,19 @@
 # hiracli
 
-Hiracy Swiss Army Command Line Tool
+Hiracy Swiss Army Command Line Tool - AWS Bedrock LLMを活用した開発者向けCLIツール
+
+現在のバージョン: v0.0.5
+
+## 目次
+
+- [インストール](#インストール)
+- [セットアップ](#セットアップ)
+- [使用方法](#使用方法)
+  - [LLM関連](#llm関連)
+  - [Git関連](#git関連)
+- [利用可能なコマンド](#利用可能なコマンド)
+- [セットアップスクリプトのオプション](#セットアップスクリプトのオプション)
+- [シェル補完](#シェル補完)
 
 ## インストール
 
@@ -41,6 +54,7 @@ cp .env.example .env
 - `AWS_ACCESS_KEY_ID`: AWSアクセスキーID
 - `AWS_SECRET_ACCESS_KEY`: AWSシークレットアクセスキー
 - `AWS_REGION`: AWSリージョン（デフォルト: ap-northeast-1）
+- `DEBUG_MODE`: デバッグモードの有効化（true/false）
 
 3. セットアップスクリプトを実行：
 
@@ -96,6 +110,7 @@ Git差分からコミットメッセージを生成：
 ```bash
 hiracli git diff-comment
 hiracli git diff-comment --llm amazon.titan-text-express-v1
+hiracli git diff-comment --cached  # ステージングされた変更の差分を使用
 ```
 
 ## 利用可能なコマンド
@@ -121,6 +136,7 @@ hiracli git diff-comment --llm amazon.titan-text-express-v1
 - `git diff-comment`: Git差分からコミットメッセージを生成
   - オプション：
     - `--llm`: LLMモデルを指定（デフォルト: anthropic.claude-3-5-sonnet-20240620-v1:0）
+    - `--cached`: ステージングされた変更の差分を使用
 
 ## セットアップスクリプトのオプション
 
